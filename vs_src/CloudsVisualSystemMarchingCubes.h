@@ -11,16 +11,17 @@
 #pragma once
 
 #include "CloudsVisualSystem.h"
+#include "ofxMarchingCubes.h"
 
 //TODO: rename this to your own visual system
-class CloudsVisualSystemEmpty : public CloudsVisualSystem {
+class CloudsVisualSystemMarchingCubes : public CloudsVisualSystem {
   public:
     
 	//TODO: Change this to the name of your visual system
 	//This determines your data path so name it at first!
 	//ie getVisualSystemDataPath() uses this
     string getSystemName(){
-		return "EmptySystem";
+		return "MetaballsSystem";
 	}
 
 	//These methods let us add custom GUI parameters and respond to their events
@@ -104,13 +105,23 @@ class CloudsVisualSystemEmpty : public CloudsVisualSystem {
 
 protected:
     
-    //  Your Stuff
-    //
+	ofxMarchingCubes mc;
+	float threshold;
+	ofBlendMode blendMode;
+	ofFloatColor c1, c2;
+	float alpha1, alpha2, mixScale;
+	
+	bool drawGrid, wireframe, smoothing, depthTest;
+	ofShader normalShader;
+	int maxVerts;
+	float scl1, scl2;
 	
 	ofxUISuperCanvas* customGui;
 	bool customToggle;
 	float customFloat1;
 	float customFloat2;
+	
+	ofImage colorMap;
 	
 	ofImage someImage;
 	ofShader pointcloudShader;
