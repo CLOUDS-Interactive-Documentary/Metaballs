@@ -104,6 +104,8 @@ class CloudsVisualSystemMarchingCubes : public CloudsVisualSystem {
 	}
 
 protected:
+	
+	void updateMesh();
     
 	ofxMarchingCubes mc;
 	float threshold;
@@ -126,4 +128,6 @@ protected:
 	ofImage someImage;
 	ofShader pointcloudShader;
 	ofVboMesh simplePointcloud;
+	
+	vector < vector < vector <ofVec3f> > > noiseVals;
 };

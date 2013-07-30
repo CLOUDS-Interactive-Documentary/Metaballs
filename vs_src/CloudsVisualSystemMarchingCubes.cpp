@@ -4,6 +4,7 @@
 
 #include "CloudsVisualSystemMarchingCubes.h"
 #include "CloudsRGBDVideoPlayer.h"
+#include <stdlib.h>     /* atoi */
 
 //#include "CloudsRGBDVideoPlayer.h"
 //#ifdef AVF_PLAYER
@@ -142,6 +143,8 @@ void CloudsVisualSystemMarchingCubes::guiRenderEvent(ofxUIEventArgs &e){
 // This will be called during a "loading" screen, so any big images or
 // geometry should be loaded here
 void CloudsVisualSystemMarchingCubes::selfSetup(){
+	
+	mc.setup();
 
 	if(ofFile::doesFileExist(getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.mov")){
 		getRGBDVideoPlayer().setup(getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.mov",
@@ -166,8 +169,8 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	normalShader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
 	
 	drawGrid = true;
-	mc.setResolution(48,16,48);
-	mc.scale.set( 400, 100, 400 );
+	mc.setResolution(40,14,40);
+	mc.scale.set( 350, 100, 350 );
 	
 	
 	maxVerts = 200000;
@@ -179,6 +182,14 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	mc.setSmoothing( smoothing );
 	
 	depthTest = true;
+	
+	
+	cout << (int)'_' << endl;
+	
+	int x=10, y=99, z=45;
+	ostringstream ss;
+	ss << x << "00" << y << "00" << z;
+	cout << "srint " << atoi( ss.str().c_str() )  << endl;
 		
 }
 
@@ -194,21 +205,71 @@ void CloudsVisualSystemMarchingCubes::selfPresetLoaded(string presetPath){
 // but try to keep it light weight as to not cause stuttering
 void CloudsVisualSystemMarchingCubes::selfBegin(){
 	
-	float val;
-	ofVec3f center( mc.resX/2, mc.resY/2, mc.resZ );
-	float lengthSq = center.lengthSquared();
-	ofVec3f gridPos;
-	float distSq;
-	for(int i=0; i<mc.resX; i++){
-		for(int j=0; j<mc.resY; j++){
-			for(int k=0; k<mc.resZ; k++){
-				gridPos.set(i,j,k);
-				distSq = gridPos.distanceSquared(center)/lengthSq;
-				val = ofNoise( i*.0001, j*.0001, k*.0001 ) * distSq / lengthSq;
-				mc.setIsoValue( i, j, k, val * val * val );
+	//create our noise samples
+	float scl1 = 10;//.1;
+	float scl2 = 5;//.15;
+	float scl3 = 15;//.2;
+	
+	noiseVals.resize( mc.resX );
+	float iStep = 1. / float(mc.resX);
+	float jStep = 1. / float(mc.resY);
+	float kStep = 1. / float(mc.resZ);
+	for (int i=0; i<noiseVals.size(); i++) {
+		noiseVals[i].resize(mc.resY);
+		for (int j=0; j<noiseVals[i].size(); j++) {
+			noiseVals[i][j].resize( mc.resZ );
+			for (int k=0; k<noiseVals[i][j].size(); k++) {
+				noiseVals[i][j][k].set( ofNoise(scl1*i*iStep,scl1*j*jStep,scl1*k*kStep),
+									    ofNoise(scl2*i*iStep,scl2*j*jStep,scl2*k*kStep),
+									    ofNoise(scl3*i*iStep,scl3*j*jStep,scl3*k*kStep));
 			}
 		}
 	}
+	
+	updateMesh();
+}
+
+void CloudsVisualSystemMarchingCubes::updateMesh()
+{
+	float t=ofGetElapsedTimef();
+	float val;
+	ofVec3f center( mc.resX, mc.resY, mc.resZ );
+	center /= 2;
+	
+	float lengthSq = center.lengthSquared();
+	ofVec3f gridPos;
+	float distSq;
+	float mixval, lerped, verticalFade;
+	int i0, i1;
+	
+	float mixI, mixJ, mixK;
+	
+	mixval = t - floor(t);
+	for(int i=0; i<mc.resX; i++){
+		
+		i0 = int(floor(i+t)) % mc.resX ;
+		
+		i1 = int(ceil(i+t)) % mc.resX ;
+		
+		for(int j=0; j<mc.resY; j++){
+			
+			verticalFade = (1. - abs((float)j / (float) mc.resY - .5) * 2.);
+			
+			for(int k=0; k<mc.resZ; k++){
+				gridPos.set(i,j,k);
+				distSq = gridPos.distanceSquared(center)/lengthSq;
+				
+				val = verticalFade;
+				val *= noiseVals[i1][j][k].x * mixval + noiseVals[i0][j][k].x * (1. - mixval);
+				val *= noiseVals[i][j][k].y;
+				
+				mc.setIsoValue( i, j, k, val * (1. - distSq) );
+			}
+		}
+	}
+	
+	//update the mesh
+	mc.update(threshold);
 }
 
 //do things like ofRotate/ofTranslate here
@@ -228,33 +289,7 @@ void CloudsVisualSystemMarchingCubes::selfUpdate(){
 	camVec *= camSpeed * t;
 	
 	
-	
-	float val;
-	ofVec3f center( mc.resX, mc.resY, mc.resZ );
-	center /= 2;
-	
-	float lengthSq = center.lengthSquared();
-	ofVec3f gridPos;
-	float distSq;
-	for(int i=0; i<mc.resX; i++){
-		for(int j=0; j<mc.resY; j++){
-			for(int k=0; k<mc.resZ; k++){
-				gridPos.set(i,j,k);
-				distSq = gridPos.distanceSquared(center)/lengthSq;
-				
-				val = ofNoise( scl1 * (i + t), scl1*j, scl1*k ) * (1. - abs((float)j / (float) mc.resY - .5) * 2.);
-				val *= ofNoise( scl2 * (i - t*.1), j*scl2, k*scl2 );
-				
-				
-				mc.setIsoValue( i, j, k, val * ofClamp(1. - distSq, 0, 1 ) );
-			}
-		}
-	}
-	
-	
-	
-	//update the mesh
-	mc.update(threshold);
+	updateMesh();
 }
 
 // selfDraw draws in 3D using the default ofEasyCamera
@@ -286,8 +321,15 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	if(wireframe){
 		mc.drawWireframe();
 	}else{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 		mc.draw();
-	}
+		
+		glCullFace(GL_BACK);
+		mc.draw();
+		
+		glDisable(GL_CULL_FACE);
+}
 	normalShader.end();
 	
 	glEnable( GL_DEPTH_TEST );
