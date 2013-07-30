@@ -1,3 +1,7 @@
+
+#version 120
+#extension GL_ARB_texture_rectangle : enable
+
 float spec = 1.;
 float expo = 4.;
 
@@ -29,14 +33,3 @@ void main(void)
 	
 	gl_FragColor = vec4( mix( c1, c2, amnt), mix( alpha1, alpha2, alpha )) * (1.-depth);
 }
-
-
-//varying vec3 norm;
-//varying vec3 ePos;
-//
-//void main(void)
-//{
-//	float fr = dot( -ePos, norm) * .5 + .5;
-//	gl_FragColor = vec4( norm, 1.) + vec4( .5);// vec3(fr), 1.);
-//}
-//
