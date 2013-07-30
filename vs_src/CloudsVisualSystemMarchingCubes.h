@@ -126,7 +126,6 @@ protected:
 	ofImage colorMap;
 	
 	ofImage someImage;
-	ofShader pointcloudShader;
 	ofVboMesh simplePointcloud;
 	
 	vector < vector < vector <ofVec3f> > > noiseVals;

@@ -158,7 +158,7 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 			}
 		}
 		
-		pointcloudShader.load(getVisualSystemDataPath() + "shaders/rgbdcombined");
+//		pointcloudShader.load(getVisualSystemDataPath() + "shaders/rgbdcombined");
 		
 	}
 	
@@ -356,7 +356,9 @@ void CloudsVisualSystemMarchingCubes::selfExit(){
 //events are called when the system is active
 //Feel free to make things interactive for you, and for the user!
 void CloudsVisualSystemMarchingCubes::selfKeyPressed(ofKeyEventArgs & args){
-	
+	if(args.key == 'R'){
+		normalShader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+	}
 }
 void CloudsVisualSystemMarchingCubes::selfKeyReleased(ofKeyEventArgs & args){
 	

@@ -27,9 +27,8 @@ void main(void)
 	float depth = linearizeDepth( gl_FragCoord.z );
 	
 	float fr = dot( -normalize(ePos), norm ) * .5 + .5;
-	float amnt = pow(fr* spec, expo) * mixScale;
+	float amnt = pow(fr * spec, 2.0) * mixScale;
 	float alpha = pow( amnt, 2.);
-	
 	
 	gl_FragColor = vec4( mix( c1, c2, amnt), mix( alpha1, alpha2, alpha )) * (1.-depth);
 }
