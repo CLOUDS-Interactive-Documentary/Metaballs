@@ -29,6 +29,7 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	customGui->addToggle("Smoothing", &smoothing);
 	customGui->addToggle("depth test", &depthTest);
 	customGui->addSlider("threshold", 0, 1, &threshold );
+	customGui->addSlider("speed", 0, 10, &speed );
 	
 	customGui->addImageSampler("c1", &colorMap, (float)colorMap.getWidth()/2, (float)colorMap.getHeight()/2 );
 	customGui->addSlider("alpha1", 0, 1, &alpha1 );
@@ -223,7 +224,7 @@ void CloudsVisualSystemMarchingCubes::selfBegin(){
 
 void CloudsVisualSystemMarchingCubes::updateMesh()
 {
-	float t=ofGetElapsedTimef();
+	float t=ofGetElapsedTimef() * speed;
 	float val;
 	ofVec3f center( mc.resX, mc.resY, mc.resZ );
 	center /= 2;

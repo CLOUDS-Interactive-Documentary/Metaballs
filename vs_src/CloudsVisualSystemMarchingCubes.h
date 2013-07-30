@@ -129,4 +129,6 @@ protected:
 	ofVboMesh simplePointcloud;
 	
 	vector < vector < vector <ofVec3f> > > noiseVals;
+	
+	float speed;
 };
