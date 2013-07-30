@@ -182,14 +182,6 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	mc.setSmoothing( smoothing );
 	
 	depthTest = true;
-	
-	
-	cout << (int)'_' << endl;
-	
-	int x=10, y=99, z=45;
-	ostringstream ss;
-	ss << x << "00" << y << "00" << z;
-	cout << "srint " << atoi( ss.str().c_str() )  << endl;
 		
 }
 
