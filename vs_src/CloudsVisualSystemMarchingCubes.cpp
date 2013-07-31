@@ -37,6 +37,10 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	customGui->addSlider("alpha2", 0, 1, &alpha2 );
 	customGui->addSlider("mixScale", 0, 2, &mixScale );
 	
+	customGui->addSlider("depthAlphaScl", .1, 2, &depthAlphaScl );
+	customGui->addSlider("depthAlphaExpo", .6, 10, &depthAlphaExpo );
+	customGui->addSlider("tileTranslateScale", .25, 1, &tileTranslateScale );
+	
 	vector<string> modes;
 	modes.push_back("alpha");
 	modes.push_back("add");
@@ -168,6 +172,7 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	
 	//MC
 	normalShader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+	depthAlphaScl = 1.25;
 	
 	drawGrid = true;
 	mc.setResolution(40,14,40);
@@ -178,6 +183,8 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	
 	scl1 = .15;
 	scl2 = .1;
+	
+	tileTranslateScale = .5;
 	
 	
 	mc.setSmoothing( smoothing );
@@ -309,17 +316,44 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	normalShader.setUniform1f("alpha1", alpha1 );
 	normalShader.setUniform1f("alpha2", alpha2 );
 	normalShader.setUniform1f("mixScale", mixScale );
-	
+	normalShader.setUniform1f("depthAlphaScl", depthAlphaScl );
+	normalShader.setUniform1f("depthAlphaExpo", depthAlphaExpo );
 	
 	if(wireframe){
 		mc.drawWireframe();
 	}else{
 		glEnable(GL_CULL_FACE);
+		
+		glCullFace(GL_BACK);
+		//		mc.draw();
+		
+		ofPushMatrix();
+		
+		//		ofTranslate(-mc.scale.x* .5, 0, mc.scale.z * .5 );
+		//		mc.draw();
+		//		ofTranslate(mc.scale.x* .5, 0, 0 );
+		//		mc.draw();
+		//		ofTranslate(mc.scale.x* .5, 0, 0 );
+		//		mc.draw();
+		
+		ofVec3f tileTranslate = mc.scale * tileTranslateScale;
+		
+		for(int x=2; x>=-2; x--){
+			for (int z=0; z<=3; z++) {
+				ofPushMatrix();
+				ofTranslate(tileTranslate.x * x, 0,	tileTranslate.z * z);
+				
+				mc.draw();
+				
+				ofPopMatrix();
+			}
+		}
+		
 		glCullFace(GL_FRONT);
 		mc.draw();
 		
-		glCullFace(GL_BACK);
-		mc.draw();
+		
+		ofPopMatrix();
 		
 		glDisable(GL_CULL_FACE);
 }

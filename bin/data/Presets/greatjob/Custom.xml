@@ -33,7 +33,7 @@
 <Widget>
     <Kind>4</Kind>
     <Name>threshold</Name>
-    <Value>0.290640384</Value>
+    <Value>0.251231521</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
@@ -74,6 +74,21 @@
     <Kind>4</Kind>
     <Name>mixScale</Name>
     <Value>1.428571463</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>depthAlphaScl</Name>
+    <Value>1.354187131</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>depthAlphaExpo</Name>
+    <Value>3.193103313</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>tileTranslateScale</Name>
+    <Value>0.752463043</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>

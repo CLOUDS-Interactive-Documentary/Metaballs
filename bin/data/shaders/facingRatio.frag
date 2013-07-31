@@ -12,10 +12,13 @@ uniform float alpha2;
 
 uniform float mixScale;
 
+uniform float depthAlphaScl = 1.2;
+uniform float depthAlphaExpo = 2;
+
 varying vec3 ePos;
 varying vec3 norm;
 
-float nearClip = 1.;
+float nearClip = 10.;
 float farClip = 500.;
 
 float linearizeDepth( in float d ) {
@@ -30,5 +33,7 @@ void main(void)
 	float amnt = pow(fr * spec, 2.0) * mixScale;
 	float alpha = pow( amnt, 2.);
 	
-	gl_FragColor = vec4( mix( c1, c2, amnt), mix( alpha1, alpha2, alpha )) * (1.-depth);
+	gl_FragColor = vec4( mix( c1, c2, amnt), mix( alpha1, alpha2, alpha ));
+	
+	gl_FragColor.w *= pow( depthAlphaScl - depth, depthAlphaExpo);
 }

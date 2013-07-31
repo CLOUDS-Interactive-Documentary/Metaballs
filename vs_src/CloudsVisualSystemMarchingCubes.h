@@ -131,4 +131,8 @@ protected:
 	vector < vector < vector <ofVec3f> > > noiseVals;
 	
 	float speed;
+	float depthAlphaScl;
+	float depthAlphaExpo;
+	
+	float tileTranslateScale;
 };
