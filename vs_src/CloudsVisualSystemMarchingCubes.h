@@ -114,7 +114,7 @@ protected:
 	float alpha1, alpha2, mixScale;
 	
 	bool drawGrid, wireframe, smoothing, depthTest;
-	ofShader shader;
+	ofShader shader, shadowShader;
 	int maxVerts;
 	float scl1, scl2;
 	

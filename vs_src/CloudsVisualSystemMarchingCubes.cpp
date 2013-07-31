@@ -189,6 +189,7 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	
 	//MC
 	shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+	shadowShader.load( getVisualSystemDataPath() + "shaders/cloudShadow" );
 	depthAlphaScl = 1.25;
 	
 	drawGrid = true;
@@ -326,6 +327,10 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	
 	ofEnableBlendMode( blendMode );
 	
+	//draw front faces
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	
 	//draw the mesh
 	shader.begin();
 	shader.setUniform3f("c1", c1.r, c1.g, c1.b);
@@ -335,11 +340,6 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	shader.setUniform1f("mixScale", mixScale );
 	shader.setUniform1f("depthAlphaScl", depthAlphaScl );
 	shader.setUniform1f("depthAlphaExpo", depthAlphaExpo );
-	
-	glEnable(GL_CULL_FACE);
-	
-	glCullFace(GL_FRONT);
-	
 	
 	//draw some repeating cloud tiles with a scale factor so they overlap
 	ofVec3f tileTranslate = mc.scale * tileTranslateScale;
@@ -362,19 +362,19 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	
 	ofPopMatrix();
 	
-	//draw our clouds in the front
+	//draw the backside of the front clouds
+	glCullFace(GL_FRONT);
 	wireframe?	mc.drawWireframe() : mc.draw();
 	
+	//now draw the front
 	glCullFace(GL_BACK);
 	wireframe?	mc.drawWireframe() : mc.draw();
 	
-	glDisable(GL_CULL_FACE);
-
 	shader.end();
 	
-	glEnable( GL_DEPTH_TEST );
 	
-	
+	glDisable( GL_DEPTH_TEST );
+	glDisable(GL_CULL_FACE);
 }
 
 // draw any debug stuff here
@@ -405,6 +405,7 @@ void CloudsVisualSystemMarchingCubes::selfExit(){
 void CloudsVisualSystemMarchingCubes::selfKeyPressed(ofKeyEventArgs & args){
 	if(args.key == 'R'){
 		shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+		shadowShader.load( getVisualSystemDataPath() + "shaders/cloudShadow" );
 	}
 }
 void CloudsVisualSystemMarchingCubes::selfKeyReleased(ofKeyEventArgs & args){
