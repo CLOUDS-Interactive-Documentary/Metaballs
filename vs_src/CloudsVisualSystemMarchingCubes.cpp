@@ -324,34 +324,30 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	}else{
 		glEnable(GL_CULL_FACE);
 		
-		glCullFace(GL_BACK);
-		//		mc.draw();
-		
-		ofPushMatrix();
-		
-		//		ofTranslate(-mc.scale.x* .5, 0, mc.scale.z * .5 );
-		//		mc.draw();
-		//		ofTranslate(mc.scale.x* .5, 0, 0 );
-		//		mc.draw();
-		//		ofTranslate(mc.scale.x* .5, 0, 0 );
-		//		mc.draw();
-		
-		ofVec3f tileTranslate = mc.scale * tileTranslateScale;
-		
-		for(int x=2; x>=-2; x--){
-			for (int z=0; z<=3; z++) {
-				ofPushMatrix();
-				ofTranslate(tileTranslate.x * x, 0,	tileTranslate.z * z);
-				
-				mc.draw();
-				
-				ofPopMatrix();
-			}
-		}
-		
 		glCullFace(GL_FRONT);
 		mc.draw();
 		
+		glCullFace(GL_BACK);
+		mc.draw();
+		
+		
+		ofVec3f tileTranslate = mc.scale * tileTranslateScale;
+		ofPushMatrix();
+		
+		for(int x=2; x>=-2; x--){
+			for (int z=0; z<=3; z++) {
+				
+				if(x != 0 && z != 0){
+					
+					ofPushMatrix();
+					ofTranslate(tileTranslate.x * x, 0,	tileTranslate.z * z);
+					
+					mc.draw();
+					
+					ofPopMatrix();
+				}
+			}
+		}
 		
 		ofPopMatrix();
 		
