@@ -2,7 +2,7 @@
     <Kind>42</Kind>
     <Name>Custom</Name>
     <IsMinified>0</IsMinified>
-    <XPosition>1.000000000</XPosition>
+    <XPosition>215.000000000</XPosition>
     <YPosition>1.000000000</YPosition>
 </Canvas>
 <Widget>
@@ -38,7 +38,7 @@
 <Widget>
     <Kind>4</Kind>
     <Name>speed</Name>
-    <Value>1.034482837</Value>
+    <Value>0.197044328</Value>
 </Widget>
 <Widget>
     <Kind>28</Kind>
@@ -53,7 +53,7 @@
 <Widget>
     <Kind>4</Kind>
     <Name>alpha1</Name>
-    <Value>0.290640384</Value>
+    <Value>0.098522164</Value>
 </Widget>
 <Widget>
     <Kind>28</Kind>
@@ -68,7 +68,7 @@
 <Widget>
     <Kind>4</Kind>
     <Name>alpha2</Name>
-    <Value>0.798029542</Value>
+    <Value>1.000000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
@@ -84,11 +84,6 @@
     <Kind>4</Kind>
     <Name>depthAlphaExpo</Name>
     <Value>5.878817558</Value>
-</Widget>
-<Widget>
-    <Kind>4</Kind>
-    <Name>tileTranslateScale</Name>
-    <Value>0.615763545</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>

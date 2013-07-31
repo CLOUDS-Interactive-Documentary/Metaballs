@@ -114,11 +114,13 @@ protected:
 	float alpha1, alpha2, mixScale;
 	
 	bool drawGrid, wireframe, smoothing, depthTest;
-	ofShader normalShader;
+	ofShader shader;
 	int maxVerts;
 	float scl1, scl2;
 	
 	ofxUISuperCanvas* customGui;
+	
+	ofxUISuperCanvas* meshGui;
 	bool customToggle;
 	float customFloat1;
 	float customFloat2;

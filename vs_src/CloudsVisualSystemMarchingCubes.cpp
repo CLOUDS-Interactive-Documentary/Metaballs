@@ -39,7 +39,6 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	
 	customGui->addSlider("depthAlphaScl", .1, 2, &depthAlphaScl );
 	customGui->addSlider("depthAlphaExpo", .6, 10, &depthAlphaExpo );
-	customGui->addSlider("tileTranslateScale", .25, 1, &tileTranslateScale );
 	
 	vector<string> modes;
 	modes.push_back("alpha");
@@ -54,6 +53,24 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	
 	guis.push_back(customGui);
 	guimap[customGui->getName()] = customGui;
+	
+	
+	
+	meshGui = new ofxUISuperCanvas("Mesh", gui);
+	meshGui->copyCanvasStyle(gui);
+	meshGui->copyCanvasProperties(gui);
+	meshGui->setName("Mesh");
+	meshGui->setWidgetFontSize(OFX_UI_FONT_SMALL);
+	
+	meshGui->addSlider("mc.scale.x", 10, 1000, &mc.scale.x );
+	meshGui->addSlider("mc.scale.y", 10, 1000, &mc.scale.y );
+	meshGui->addSlider("mc.scale.z", 10, 1000, &mc.scale.z );
+	meshGui->addSlider("tileTranslateScale", .25, 1, &tileTranslateScale );
+	
+	ofAddListener(meshGui->newGUIEvent, this, &CloudsVisualSystemMarchingCubes::selfGuiEvent);
+	
+	guis.push_back(meshGui);
+	guimap[meshGui->getName()] = meshGui;
 }
 
 void CloudsVisualSystemMarchingCubes::selfGuiEvent(ofxUIEventArgs &e){
@@ -171,15 +188,15 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	
 	
 	//MC
-	normalShader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+	shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
 	depthAlphaScl = 1.25;
 	
 	drawGrid = true;
-	mc.setResolution(40,14,40);
-	mc.scale.set( 350, 100, 350 );
+	mc.setResolution(32,16,32);
+	mc.scale.set( 300, 100, 300 );
 	
 	
-	maxVerts = 200000;
+	maxVerts = 100000;
 	
 	scl1 = .15;
 	scl2 = .1;
@@ -208,7 +225,7 @@ void CloudsVisualSystemMarchingCubes::selfBegin(){
 	//create our noise samples
 	float scl1 = 10;//.1;
 	float scl2 = 5;//.15;
-	float scl3 = 15;//.2;
+	float scl3 = 2;//.2;
 	
 	noiseVals.resize( mc.resX );
 	float iStep = 1. / float(mc.resX);
@@ -310,55 +327,53 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	ofEnableBlendMode( blendMode );
 	
 	//draw the mesh
-	normalShader.begin();
-	normalShader.setUniform3f("c1", c1.r, c1.g, c1.b);
-	normalShader.setUniform3f("c2", c2.r, c2.g, c2.b);
-	normalShader.setUniform1f("alpha1", alpha1 );
-	normalShader.setUniform1f("alpha2", alpha2 );
-	normalShader.setUniform1f("mixScale", mixScale );
-	normalShader.setUniform1f("depthAlphaScl", depthAlphaScl );
-	normalShader.setUniform1f("depthAlphaExpo", depthAlphaExpo );
+	shader.begin();
+	shader.setUniform3f("c1", c1.r, c1.g, c1.b);
+	shader.setUniform3f("c2", c2.r, c2.g, c2.b);
+	shader.setUniform1f("alpha1", alpha1 );
+	shader.setUniform1f("alpha2", alpha2 );
+	shader.setUniform1f("mixScale", mixScale );
+	shader.setUniform1f("depthAlphaScl", depthAlphaScl );
+	shader.setUniform1f("depthAlphaExpo", depthAlphaExpo );
 	
-	if(wireframe){
-		mc.drawWireframe();
-	}else{
-		glEnable(GL_CULL_FACE);
-		
-		glCullFace(GL_FRONT);
-		
-		ofVec3f tileTranslate = mc.scale * tileTranslateScale;
-		ofPushMatrix();
-		
-		for(int x=2; x>=-2; x--){
-			for (int z=0; z<=3; z++) {
+	glEnable(GL_CULL_FACE);
+	
+	glCullFace(GL_FRONT);
+	
+	
+	//draw some repeating cloud tiles with a scale factor so they overlap
+	ofVec3f tileTranslate = mc.scale * tileTranslateScale;
+	ofPushMatrix();
+	
+	for(int x=2; x>=-2; x--){
+		for (int z=0; z<=3; z++) {
+			
+			if(!(x == 0 && z == 0)){
 				
-				if(!(x == 0 && z == 0)){
-					
-					ofPushMatrix();
-					ofTranslate(tileTranslate.x * x, 0,	tileTranslate.z * z);
-					
-					mc.draw();
-					
-					ofPopMatrix();
-				}
+				ofPushMatrix();
+				ofTranslate(tileTranslate.x * x, 0,	tileTranslate.z * z);
+				
+				wireframe?	mc.drawWireframe() : mc.draw();
+				
+				ofPopMatrix();
 			}
 		}
-		
-		ofPopMatrix();
-		
-		
-		mc.draw();
-		
-		glCullFace(GL_BACK);
-		mc.draw();
-		
-		glDisable(GL_CULL_FACE);
-}
-	normalShader.end();
+	}
+	
+	ofPopMatrix();
+	
+	//draw our clouds in the front
+	wireframe?	mc.drawWireframe() : mc.draw();
+	
+	glCullFace(GL_BACK);
+	wireframe?	mc.drawWireframe() : mc.draw();
+	
+	glDisable(GL_CULL_FACE);
+
+	shader.end();
 	
 	glEnable( GL_DEPTH_TEST );
 	
-//	camera.end();
 	
 }
 
@@ -389,7 +404,7 @@ void CloudsVisualSystemMarchingCubes::selfExit(){
 //Feel free to make things interactive for you, and for the user!
 void CloudsVisualSystemMarchingCubes::selfKeyPressed(ofKeyEventArgs & args){
 	if(args.key == 'R'){
-		normalShader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+		shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
 	}
 }
 void CloudsVisualSystemMarchingCubes::selfKeyReleased(ofKeyEventArgs & args){
