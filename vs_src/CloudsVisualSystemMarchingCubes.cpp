@@ -183,7 +183,7 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	scl1 = .15;
 	scl2 = .1;
 	
-	mcType = 1;
+	mcType = 0;
 	tileTranslateScale = .5;
 	mc.setSmoothing( smoothing );
 	
