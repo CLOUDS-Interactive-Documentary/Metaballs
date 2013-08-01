@@ -37,16 +37,16 @@
 </Widget>
 <Widget>
     <Kind>2</Kind>
+    <Name>metaball simple</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
     <Name>nice weather</Name>
     <Value>0</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
     <Name>vertically stretched</Name>
-    <Value>0</Value>
-</Widget>
-<Widget>
-    <Kind>2</Kind>
-    <Name>metaball simple</Name>
     <Value>0</Value>
 </Widget>

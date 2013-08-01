@@ -306,7 +306,7 @@ void CloudsVisualSystemMarchingCubes::addBallToMC(ofVec3f pos, float rad){
 				indexPos.z = z;
 				wp = (step * indexPos) * mc.scale;
 				float dist = wp.distance( p0 );
-				if( dist < radSqr && mc.getIsoValue(x,y,z) < 1 ){
+				if( dist < radSqr ){
 					mc.setIsoValue( x, y, z, 1. - dist / radSqr + mc.getIsoValue(x,y,z) ) ;
 				}
 			}

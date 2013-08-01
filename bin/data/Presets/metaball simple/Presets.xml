@@ -2,8 +2,8 @@
     <Kind>42</Kind>
     <Name>Presets</Name>
     <IsMinified>0</IsMinified>
-    <XPosition>4.000000000</XPosition>
-    <YPosition>286.000000000</YPosition>
+    <XPosition>849.000061035</XPosition>
+    <YPosition>213.000000000</YPosition>
 </Canvas>
 <Widget>
     <Kind>2</Kind>
@@ -37,6 +37,11 @@
 </Widget>
 <Widget>
     <Kind>2</Kind>
+    <Name>metaball simple</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
     <Name>nice weather</Name>
     <Value>0</Value>
 </Widget>
@@ -44,9 +49,4 @@
     <Kind>2</Kind>
     <Name>vertically stretched</Name>
     <Value>0</Value>
-</Widget>
-<Widget>
-    <Kind>2</Kind>
-    <Name>metaball simple</Name>
-    <Value>1</Value>
 </Widget>

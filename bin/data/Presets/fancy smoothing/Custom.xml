@@ -78,12 +78,12 @@
 <Widget>
     <Kind>4</Kind>
     <Name>depthAlphaScl</Name>
-    <Value>1.747290730</Value>
+    <Value>1.569458127</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>depthAlphaExpo</Name>
-    <Value>4.860098362</Value>
+    <Value>10.000000000</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
