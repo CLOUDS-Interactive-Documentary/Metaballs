@@ -2,8 +2,8 @@
     <Kind>42</Kind>
     <Name>Mesh</Name>
     <IsMinified>0</IsMinified>
-    <XPosition>213.000000000</XPosition>
-    <YPosition>1.000000000</YPosition>
+    <XPosition>214.000000000</XPosition>
+    <YPosition>23.000000000</YPosition>
 </Canvas>
 <Widget>
     <Kind>4</Kind>
@@ -24,4 +24,9 @@
     <Kind>4</Kind>
     <Name>tileTranslateScale</Name>
     <Value>0.726601005</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>cloudHeight</Name>
+    <Value>11.330049515</Value>
 </Widget>

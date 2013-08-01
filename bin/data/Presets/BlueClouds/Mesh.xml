@@ -25,3 +25,8 @@
     <Name>tileTranslateScale</Name>
     <Value>0.671182275</Value>
 </Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>cloudHeight</Name>
+    <Value>11.330062866</Value>
+</Widget>

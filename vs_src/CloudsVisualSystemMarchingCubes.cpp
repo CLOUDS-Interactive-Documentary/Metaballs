@@ -29,7 +29,7 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	customGui->addToggle("Smoothing", &smoothing);
 	customGui->addToggle("depth test", &depthTest);
 	customGui->addSlider("threshold", 0, 1, &threshold );
-	customGui->addSlider("speed", 0, 10, &speed );
+	customGui->addSlider("speed", -20, 20, &speed );
 	
 	customGui->addImageSampler("c1", &colorMap, (float)colorMap.getWidth()/2, (float)colorMap.getHeight()/2 );
 	customGui->addSlider("alpha1", 0, 1, &alpha1 );
@@ -66,6 +66,7 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	meshGui->addSlider("mc.scale.y", 10, 1000, &mc.scale.y );
 	meshGui->addSlider("mc.scale.z", 10, 1000, &mc.scale.z );
 	meshGui->addSlider("tileTranslateScale", .25, 1, &tileTranslateScale );
+	meshGui->addSlider("cloudHeight", -200, 200, &cloudHeight );
 	
 	ofAddListener(meshGui->newGUIEvent, this, &CloudsVisualSystemMarchingCubes::selfGuiEvent);
 	
@@ -166,45 +167,24 @@ void CloudsVisualSystemMarchingCubes::guiRenderEvent(ofxUIEventArgs &e){
 // geometry should be loaded here
 void CloudsVisualSystemMarchingCubes::selfSetup(){
 	
-	mc.setup();
-
-	if(ofFile::doesFileExist(getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.mov")){
-		getRGBDVideoPlayer().setup(getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.mov",
-								   getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.xml" );
-		
-		getRGBDVideoPlayer().swapAndPlay();
-		
-		for(int i = 0; i < 640; i += 2){
-			for(int j = 0; j < 480; j+=2){
-				simplePointcloud.addVertex(ofVec3f(i,j,0));
-			}
-		}
-		
-//		pointcloudShader.load(getVisualSystemDataPath() + "shaders/rgbdcombined");
-		
-	}
-	
 	colorMap.loadImage( getVisualSystemDataPath() + "GUI/defaultColorPalette.png" );
 	
 	
 	//MC
+	mc.setup();
 	shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
-	shadowShader.load( getVisualSystemDataPath() + "shaders/cloudShadow" );
 	depthAlphaScl = 1.25;
 	
 	drawGrid = true;
 	mc.setResolution(32,16,32);
 	mc.scale.set( 300, 100, 300 );
-	
-	
-	maxVerts = 100000;
+	maxVerts = 200000;
 	
 	scl1 = .15;
 	scl2 = .1;
 	
+	mcType = 1;
 	tileTranslateScale = .5;
-	
-	
 	mc.setSmoothing( smoothing );
 	
 	depthTest = true;
@@ -247,8 +227,8 @@ void CloudsVisualSystemMarchingCubes::selfBegin(){
 	updateMesh();
 }
 
-void CloudsVisualSystemMarchingCubes::updateMesh()
-{
+void CloudsVisualSystemMarchingCubes::updateMeshNoise(){
+	
 	float t=ofGetElapsedTimef() * speed;
 	float val;
 	ofVec3f center( mc.resX, mc.resY, mc.resZ );
@@ -263,11 +243,14 @@ void CloudsVisualSystemMarchingCubes::updateMesh()
 	float mixI, mixJ, mixK;
 	
 	mixval = t - floor(t);
+	if(mixval < 0)	mixval += 1.;
 	for(int i=0; i<mc.resX; i++){
 		
 		i0 = int(floor(i+t)) % mc.resX ;
+		if(i0<0)	i0+=mc.resX;
 		
 		i1 = int(ceil(i+t)) % mc.resX ;
+		if(i1<0)	i1+=mc.resX;
 		
 		for(int j=0; j<mc.resY; j++){
 			
@@ -284,6 +267,51 @@ void CloudsVisualSystemMarchingCubes::updateMesh()
 				mc.setIsoValue( i, j, k, val * (1. - distSq) );
 			}
 		}
+	}
+}
+
+void CloudsVisualSystemMarchingCubes::updateMeshFauxBalls(){
+	ofVec3f p0 = mc.scale/2;
+	float rad = 30;
+	
+	ofVec3f step( 1./float(mc.resX),1./float(mc.resY),1./float(mc.resZ) );
+	ofVec3f indexPos, wp;
+	
+	for (int x=0; x<mc.resX; x++) {
+		indexPos.x = x;
+		for(int y=0; y<mc.resY; y++){
+			indexPos.y = y;
+			for(int z=0; z<mc.resZ; z++){
+				indexPos.z = z;
+				wp = (step * indexPos) * mc.scale;
+				float dist = wp.distance( p0 );
+				if(dist < rad){
+					mc.setIsoValue( x, y, z, 1. - dist / rad );
+				}
+				
+				if(ofGetElapsedTimef() < 1){
+					cout << wp << endl;
+				}
+			}
+		}
+	}
+	
+}
+
+void CloudsVisualSystemMarchingCubes::updateMesh()
+{
+	switch (mcType) {
+		case 0:
+			updateMeshNoise();
+			break;
+			
+		case 1:
+			updateMeshFauxBalls();
+			break;
+			
+		default:
+			updateMeshNoise();
+			break;
 	}
 	
 	//update the mesh
@@ -331,6 +359,8 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	
+	glPointSize( 4 );
+	
 	//draw the mesh
 	shader.begin();
 	shader.setUniform3f("c1", c1.r, c1.g, c1.b);
@@ -345,22 +375,27 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	ofVec3f tileTranslate = mc.scale * tileTranslateScale;
 	ofPushMatrix();
 	
+	ofTranslate(0,cloudHeight,0);
+	
 	for(int x=2; x>=-2; x--){
 		for (int z=0; z<=3; z++) {
 			
 			if(!(x == 0 && z == 0)){
 				
 				ofPushMatrix();
-				ofTranslate(tileTranslate.x * x, 0,	tileTranslate.z * z);
+				ofTranslate(tileTranslate.x * x, 0, tileTranslate.z * z);
 				
+				shader.begin();
 				wireframe?	mc.drawWireframe() : mc.draw();
+				
+				shader.end();
 				
 				ofPopMatrix();
 			}
 		}
 	}
 	
-	ofPopMatrix();
+	shader.begin();
 	
 	//draw the backside of the front clouds
 	glCullFace(GL_FRONT);
@@ -372,9 +407,10 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	
 	shader.end();
 	
+	ofPopMatrix();
 	
-	glDisable( GL_DEPTH_TEST );
 	glDisable(GL_CULL_FACE);
+	glDisable( GL_DEPTH_TEST );
 }
 
 // draw any debug stuff here
@@ -405,7 +441,6 @@ void CloudsVisualSystemMarchingCubes::selfExit(){
 void CloudsVisualSystemMarchingCubes::selfKeyPressed(ofKeyEventArgs & args){
 	if(args.key == 'R'){
 		shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
-		shadowShader.load( getVisualSystemDataPath() + "shaders/cloudShadow" );
 	}
 }
 void CloudsVisualSystemMarchingCubes::selfKeyReleased(ofKeyEventArgs & args){

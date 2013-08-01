@@ -106,6 +106,10 @@ class CloudsVisualSystemMarchingCubes : public CloudsVisualSystem {
 protected:
 	
 	void updateMesh();
+	void updateMeshNoise();
+	void updateMeshFauxBalls();
+	
+	vector< vector< vector <float> > > ballVals;
     
 	ofxMarchingCubes mc;
 	float threshold;
@@ -137,4 +141,7 @@ protected:
 	float depthAlphaExpo;
 	
 	float tileTranslateScale;
+	float cloudHeight;
+	
+	int mcType;
 };
