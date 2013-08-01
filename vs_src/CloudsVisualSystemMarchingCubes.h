@@ -135,6 +135,8 @@ protected:
 	ofVboMesh simplePointcloud;
 	
 	vector < vector < vector <ofVec3f> > > noiseVals;
+	bool noiseValsCached;
+	void cacheNoiseVals();
 	
 	float speed;
 	float depthAlphaScl;
@@ -144,4 +146,12 @@ protected:
 	float cloudHeight;
 	
 	int mcType;
+	
+	bool tiling;
+	
+	vector<ofVec3f> balls;
+	vector<ofVec3f> ballVelocity;
+	vector<float> ballRadius;
+	void addBallToMC(ofVec3f pos, float rad);
+	float mcRadiusScale;
 };
