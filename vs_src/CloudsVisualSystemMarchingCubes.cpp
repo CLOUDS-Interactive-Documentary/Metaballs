@@ -236,7 +236,7 @@ void CloudsVisualSystemMarchingCubes::selfBegin(){
 		cacheNoiseVals();
 		
 	}
-	else if( mcType == 1){
+//	else if( mcType == 1){
 		balls.resize( 10 );
 		ballRadius.resize(balls.size());
 		ballVelocity.resize(balls.size());
@@ -247,7 +247,7 @@ void CloudsVisualSystemMarchingCubes::selfBegin(){
 		}
 		
 		updateMeshFauxBalls();
-	}
+//	}
 
 	updateMesh();
 }
