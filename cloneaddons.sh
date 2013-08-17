@@ -39,4 +39,5 @@ ${PREFIX}Flightphase/ofxTween
 ${PREFIX}Flightphase/ofxTextInputField
 ${PREFIX}obviousjim/ofxMSATimer
 ${PREFIX}YCAMInterlab/ofxTimecode
+${PREFIX}Larsberg/ofxMarchingCubes
 
