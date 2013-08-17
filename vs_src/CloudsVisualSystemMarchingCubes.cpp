@@ -29,7 +29,7 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	customGui->addToggle("Smoothing", &smoothing);
 	customGui->addToggle("depth test", &depthTest);
 	customGui->addSlider("threshold", 0, 1, &threshold );
-	customGui->addSlider("speed", 0, 10, &speed );
+	customGui->addSlider("speed", -20, 20, &speed );
 	
 	customGui->addImageSampler("c1", &colorMap, (float)colorMap.getWidth()/2, (float)colorMap.getHeight()/2 );
 	customGui->addSlider("alpha1", 0, 1, &alpha1 );
@@ -39,7 +39,6 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	
 	customGui->addSlider("depthAlphaScl", .1, 2, &depthAlphaScl );
 	customGui->addSlider("depthAlphaExpo", .6, 10, &depthAlphaExpo );
-	customGui->addSlider("tileTranslateScale", .25, 1, &tileTranslateScale );
 	
 	vector<string> modes;
 	modes.push_back("alpha");
@@ -54,6 +53,34 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	
 	guis.push_back(customGui);
 	guimap[customGui->getName()] = customGui;
+	
+	
+	
+	meshGui = new ofxUISuperCanvas("Mesh", gui);
+	meshGui->copyCanvasStyle(gui);
+	meshGui->copyCanvasProperties(gui);
+	meshGui->setName("Mesh");
+	meshGui->setWidgetFontSize(OFX_UI_FONT_SMALL);
+	
+	
+	vector<string> isoSurfaceType;
+	isoSurfaceType.push_back("noise");
+	isoSurfaceType.push_back("metaballs");
+	meshGui->addRadio("isoSurfaceType", isoSurfaceType);
+	
+	meshGui->addSlider("mc.scale.x", 10, 1000, &mc.scale.x );
+	meshGui->addSlider("mc.scale.y", 10, 1000, &mc.scale.y );
+	meshGui->addSlider("mc.scale.z", 10, 1000, &mc.scale.z );
+	meshGui->addSlider("tileTranslateScale", .25, 1, &tileTranslateScale );
+	meshGui->addSlider("cloudHeight", -200, 200, &cloudHeight );
+	
+	meshGui->addToggle("tiling", &tiling);
+	
+	
+	ofAddListener(meshGui->newGUIEvent, this, &CloudsVisualSystemMarchingCubes::selfGuiEvent);
+	
+	guis.push_back(meshGui);
+	guimap[meshGui->getName()] = meshGui;
 }
 
 void CloudsVisualSystemMarchingCubes::selfGuiEvent(ofxUIEventArgs &e){
@@ -125,6 +152,21 @@ void CloudsVisualSystemMarchingCubes::selfGuiEvent(ofxUIEventArgs &e){
 		c2.set(col.r, col.g, col.b, 1.);
 	}
 	
+	else if(name == "noise"){
+		ofxUIToggle *t = e.getToggle();
+		if(t->getValue()){
+			mcType = 0;
+		}
+	}
+	
+	else if(name == "metaballs"){
+		ofxUIToggle *t = e.getToggle();
+		if(t->getValue()){
+			mcType = 1;
+		}
+	}
+	
+	
 }
 
 //Use system gui for global or logical settings, for exmpl
@@ -149,47 +191,31 @@ void CloudsVisualSystemMarchingCubes::guiRenderEvent(ofxUIEventArgs &e){
 // geometry should be loaded here
 void CloudsVisualSystemMarchingCubes::selfSetup(){
 	
-	mc.setup();
-
-	if(ofFile::doesFileExist(getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.mov")){
-		getRGBDVideoPlayer().setup(getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.mov",
-								   getVisualSystemDataPath() + "TestVideo/Jer_TestVideo.xml" );
-		
-		getRGBDVideoPlayer().swapAndPlay();
-		
-		for(int i = 0; i < 640; i += 2){
-			for(int j = 0; j < 480; j+=2){
-				simplePointcloud.addVertex(ofVec3f(i,j,0));
-			}
-		}
-		
-//		pointcloudShader.load(getVisualSystemDataPath() + "shaders/rgbdcombined");
-		
-	}
-	
 	colorMap.loadImage( getVisualSystemDataPath() + "GUI/defaultColorPalette.png" );
 	
 	
 	//MC
-	normalShader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+	mc.setup();
+	shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
 	depthAlphaScl = 1.25;
 	
 	drawGrid = true;
-	mc.setResolution(40,14,40);
-	mc.scale.set( 350, 100, 350 );
-	
-	
+	mc.setResolution(32,16,32);
+	mc.scale.set( 300, 100, 300 );
 	maxVerts = 200000;
 	
 	scl1 = .15;
 	scl2 = .1;
 	
+	mcType = 1;
 	tileTranslateScale = .5;
-	
-	
 	mc.setSmoothing( smoothing );
 	
 	depthTest = true;
+	tiling = true;
+	noiseValsCached = false;
+	
+	mcRadiusScale = 1.5;
 		
 }
 
@@ -204,11 +230,34 @@ void CloudsVisualSystemMarchingCubes::selfPresetLoaded(string presetPath){
 // this is a good time to prepare for transitions
 // but try to keep it light weight as to not cause stuttering
 void CloudsVisualSystemMarchingCubes::selfBegin(){
+
+	if(mcType == 0){
+		
+		cacheNoiseVals();
+		
+	}
+//	else if( mcType == 1){
+		balls.resize( 10 );
+		ballRadius.resize(balls.size());
+		ballVelocity.resize(balls.size());
+		
+		for(int i=0; i<balls.size(); i++){
+			balls[i].set( ofRandom(-100, 100), ofRandom(-100, 100), ofRandom(-100, 100));
+			ballRadius[i] = ofRandom(10, 30);
+		}
+		
+		updateMeshFauxBalls();
+//	}
+
+	updateMesh();
+}
+
+void CloudsVisualSystemMarchingCubes::cacheNoiseVals(){
 	
 	//create our noise samples
 	float scl1 = 10;//.1;
 	float scl2 = 5;//.15;
-	float scl3 = 15;//.2;
+	float scl3 = 2;//.2;
 	
 	noiseVals.resize( mc.resX );
 	float iStep = 1. / float(mc.resX);
@@ -220,17 +269,55 @@ void CloudsVisualSystemMarchingCubes::selfBegin(){
 			noiseVals[i][j].resize( mc.resZ );
 			for (int k=0; k<noiseVals[i][j].size(); k++) {
 				noiseVals[i][j][k].set( ofNoise(scl1*i*iStep,scl1*j*jStep,scl1*k*kStep),
-									    ofNoise(scl2*i*iStep,scl2*j*jStep,scl2*k*kStep),
-									    ofNoise(scl3*i*iStep,scl3*j*jStep,scl3*k*kStep));
+									   ofNoise(scl2*i*iStep,scl2*j*jStep,scl2*k*kStep),
+									   ofNoise(scl3*i*iStep,scl3*j*jStep,scl3*k*kStep));
 			}
 		}
 	}
 	
-	updateMesh();
+	noiseValsCached = true;
 }
 
-void CloudsVisualSystemMarchingCubes::updateMesh()
-{
+void CloudsVisualSystemMarchingCubes::addBallToMC(ofVec3f pos, float rad){
+	//center of the metaballs == half it's scale
+	ofVec3f hlfScl = mc.scale/2;
+	ofVec3f p0 = hlfScl + pos;
+	
+	float scaledRad = rad * mcRadiusScale;
+	float radSqr = scaledRad;// * scaledRad;
+	
+	int minX = ofClamp( ofMap( p0.x - rad, 0, mc.scale.x, 0, mc.resX), 0, mc.resX);
+	int maxX = ofClamp( ofMap( p0.x + rad, 0, mc.scale.x, 0, mc.resX), 0, mc.resX);
+	
+	int minY = ofClamp( ofMap( p0.y - rad, 0, mc.scale.y, 0, mc.resY), 0, mc.resY);
+	int maxY = ofClamp( ofMap( p0.y + rad, 0, mc.scale.y, 0, mc.resY), 0, mc.resY);
+	
+	int minZ = ofClamp( ofMap( p0.z - rad, 0, mc.scale.z, 0, mc.resZ), 0, mc.resZ);
+	int maxZ = ofClamp( ofMap( p0.z + rad, 0, mc.scale.z, 0, mc.resZ), 0, mc.resZ);
+	
+	ofVec3f step( 1./float(mc.resX), 1./float(mc.resY), 1./float(mc.resZ) );
+	ofVec3f indexPos, wp;
+	
+	for (int x=minX; x<=maxX; x++) {
+		indexPos.x = x;
+		for(int y=minY; y<=maxY; y++){
+			indexPos.y = y;
+			for(int z=minZ; z<=maxZ; z++){
+				indexPos.z = z;
+				wp = (step * indexPos) * mc.scale;
+				float dist = wp.distance( p0 );
+				if( dist < radSqr ){
+					mc.setIsoValue( x, y, z, 1. - dist / radSqr + mc.getIsoValue(x,y,z) ) ;
+				}
+			}
+		}
+	}
+}
+
+void CloudsVisualSystemMarchingCubes::updateMeshNoise(){
+	
+	if(!noiseValsCached)	cacheNoiseVals();
+	
 	float t=ofGetElapsedTimef() * speed;
 	float val;
 	ofVec3f center( mc.resX, mc.resY, mc.resZ );
@@ -245,11 +332,14 @@ void CloudsVisualSystemMarchingCubes::updateMesh()
 	float mixI, mixJ, mixK;
 	
 	mixval = t - floor(t);
+	if(mixval < 0)	mixval += 1.;
 	for(int i=0; i<mc.resX; i++){
 		
 		i0 = int(floor(i+t)) % mc.resX ;
+		if(i0<0)	i0+=mc.resX;
 		
 		i1 = int(ceil(i+t)) % mc.resX ;
+		if(i1<0)	i1+=mc.resX;
 		
 		for(int j=0; j<mc.resY; j++){
 			
@@ -266,6 +356,71 @@ void CloudsVisualSystemMarchingCubes::updateMesh()
 				mc.setIsoValue( i, j, k, val * (1. - distSq) );
 			}
 		}
+	}
+}
+
+void CloudsVisualSystemMarchingCubes::updateMeshFauxBalls(){
+	//clear the isoVals
+	mc.wipeIsoValues();
+	
+	//update the balls positions
+	float attenuation = .999;
+	float attraction = -.1;
+	float force, distance, diff;
+	ofVec3f delta;
+	for (int i=0; i<balls.size(); i++) {
+		//add the global force and attenuation
+		ballVelocity[i] *= attenuation;
+		ballVelocity[i] += balls[i].normalized() * attraction;
+		
+		balls[i] += ballVelocity[i];
+		
+		//collide with the other balls
+		for (int j=0; j<balls.size(); j++) {
+			if(i != j){
+				delta = balls[i] - balls[j];
+				distance = delta.length();
+				float minDist = ballRadius[i] + ballRadius[j];
+				if( minDist > distance ){
+					
+					float overlap = minDist - distance;
+					
+					delta.normalize();
+					delta *= overlap * .5;
+					
+					balls[i] += delta;
+					balls[j] -= delta;
+					
+					ballVelocity[i] += delta;
+					ballVelocity[j] -= delta;
+					
+				}
+			}
+		}
+	}
+	
+	//add them to the marching cubes
+	for(int i=0; i<balls.size(); i++){		
+		//add it to the marching cubes
+		addBallToMC(balls[i], ballRadius[i]);
+	}
+	
+}
+
+void CloudsVisualSystemMarchingCubes::updateMesh()
+{
+	switch (mcType) {
+		case 0:
+			updateMeshNoise();
+			break;
+			
+		case 1:
+			updateMeshFauxBalls();
+			break;
+			
+		default:
+			updateMeshNoise();
+			break;
 	}
 	
 	//update the mesh
@@ -309,60 +464,64 @@ void CloudsVisualSystemMarchingCubes::selfDraw(){
 	
 	ofEnableBlendMode( blendMode );
 	
-	//draw the mesh
-	normalShader.begin();
-	normalShader.setUniform3f("c1", c1.r, c1.g, c1.b);
-	normalShader.setUniform3f("c2", c2.r, c2.g, c2.b);
-	normalShader.setUniform1f("alpha1", alpha1 );
-	normalShader.setUniform1f("alpha2", alpha2 );
-	normalShader.setUniform1f("mixScale", mixScale );
-	normalShader.setUniform1f("depthAlphaScl", depthAlphaScl );
-	normalShader.setUniform1f("depthAlphaExpo", depthAlphaExpo );
+	//draw front faces
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	
-	if(wireframe){
-		mc.drawWireframe();
-	}else{
-		glEnable(GL_CULL_FACE);
-		
-		glCullFace(GL_BACK);
-		//		mc.draw();
-		
-		ofPushMatrix();
-		
-		//		ofTranslate(-mc.scale.x* .5, 0, mc.scale.z * .5 );
-		//		mc.draw();
-		//		ofTranslate(mc.scale.x* .5, 0, 0 );
-		//		mc.draw();
-		//		ofTranslate(mc.scale.x* .5, 0, 0 );
-		//		mc.draw();
-		
-		ofVec3f tileTranslate = mc.scale * tileTranslateScale;
-		
+	glPointSize( 4 );
+	
+	//draw the mesh
+	shader.begin();
+	shader.setUniform3f("c1", c1.r, c1.g, c1.b);
+	shader.setUniform3f("c2", c2.r, c2.g, c2.b);
+	shader.setUniform1f("alpha1", alpha1 );
+	shader.setUniform1f("alpha2", alpha2 );
+	shader.setUniform1f("mixScale", mixScale );
+	shader.setUniform1f("depthAlphaScl", depthAlphaScl );
+	shader.setUniform1f("depthAlphaExpo", depthAlphaExpo );
+	
+	//draw some repeating cloud tiles with a scale factor so they overlap
+	ofVec3f tileTranslate = mc.scale * tileTranslateScale;
+	ofPushMatrix();
+	
+	ofTranslate(0,cloudHeight,0);
+	
+	if(tiling){
 		for(int x=2; x>=-2; x--){
 			for (int z=0; z<=3; z++) {
-				ofPushMatrix();
-				ofTranslate(tileTranslate.x * x, 0,	tileTranslate.z * z);
 				
-				mc.draw();
-				
-				ofPopMatrix();
+				if(!(x == 0 && z == 0)){
+					
+					ofPushMatrix();
+					ofTranslate(tileTranslate.x * x, 0, tileTranslate.z * z);
+					
+					wireframe?	mc.drawWireframe() : mc.draw();
+					
+					ofPopMatrix();
+				}
 			}
 		}
-		
-		glCullFace(GL_FRONT);
-		mc.draw();
-		
-		
-		ofPopMatrix();
-		
-		glDisable(GL_CULL_FACE);
-}
-	normalShader.end();
+	}
 	
-	glEnable( GL_DEPTH_TEST );
+	//draw the backside of the front clouds
+	glCullFace(GL_FRONT);
+	wireframe?	mc.drawWireframe() : mc.draw();
 	
-//	camera.end();
+	//now draw the front
+	glCullFace(GL_BACK);
+	wireframe?	mc.drawWireframe() : mc.draw();
 	
+	shader.end();
+	
+//	for (int i=0; i<balls.size(); i++) {
+//		ofSphere(balls[i].x, balls[i].y, balls[i].z, ballRadius[i] );
+//	}
+	
+	ofPopMatrix();
+	
+	
+	glDisable(GL_CULL_FACE);
+	glDisable( GL_DEPTH_TEST );
 }
 
 // draw any debug stuff here
@@ -392,7 +551,7 @@ void CloudsVisualSystemMarchingCubes::selfExit(){
 //Feel free to make things interactive for you, and for the user!
 void CloudsVisualSystemMarchingCubes::selfKeyPressed(ofKeyEventArgs & args){
 	if(args.key == 'R'){
-		normalShader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
+		shader.load( getVisualSystemDataPath() + "shaders/facingRatio" );
 	}
 }
 void CloudsVisualSystemMarchingCubes::selfKeyReleased(ofKeyEventArgs & args){

@@ -2,8 +2,8 @@
     <Kind>42</Kind>
     <Name>Custom</Name>
     <IsMinified>0</IsMinified>
-    <XPosition>1137.000000000</XPosition>
-    <YPosition>249.000000000</YPosition>
+    <XPosition>1.000000000</XPosition>
+    <YPosition>1.000000000</YPosition>
 </Canvas>
 <Widget>
     <Kind>4</Kind>
@@ -34,6 +34,11 @@
     <Kind>4</Kind>
     <Name>threshold</Name>
     <Value>0.256157637</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>speed</Name>
+    <Value>0.197044373</Value>
 </Widget>
 <Widget>
     <Kind>28</Kind>
@@ -71,9 +76,19 @@
     <Value>0.886699498</Value>
 </Widget>
 <Widget>
+    <Kind>4</Kind>
+    <Name>depthAlphaScl</Name>
+    <Value>1.522660017</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>depthAlphaExpo</Name>
+    <Value>5.878817558</Value>
+</Widget>
+<Widget>
     <Kind>2</Kind>
     <Name>alpha</Name>
-    <Value>0</Value>
+    <Value>1</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
@@ -98,5 +113,5 @@
 <Widget>
     <Kind>2</Kind>
     <Name>disable</Name>
-    <Value>1</Value>
+    <Value>0</Value>
 </Widget>

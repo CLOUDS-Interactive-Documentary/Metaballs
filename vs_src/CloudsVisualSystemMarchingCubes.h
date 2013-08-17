@@ -106,6 +106,10 @@ class CloudsVisualSystemMarchingCubes : public CloudsVisualSystem {
 protected:
 	
 	void updateMesh();
+	void updateMeshNoise();
+	void updateMeshFauxBalls();
+	
+	vector< vector< vector <float> > > ballVals;
     
 	ofxMarchingCubes mc;
 	float threshold;
@@ -114,11 +118,13 @@ protected:
 	float alpha1, alpha2, mixScale;
 	
 	bool drawGrid, wireframe, smoothing, depthTest;
-	ofShader normalShader;
+	ofShader shader, shadowShader;
 	int maxVerts;
 	float scl1, scl2;
 	
 	ofxUISuperCanvas* customGui;
+	
+	ofxUISuperCanvas* meshGui;
 	bool customToggle;
 	float customFloat1;
 	float customFloat2;
@@ -129,10 +135,23 @@ protected:
 	ofVboMesh simplePointcloud;
 	
 	vector < vector < vector <ofVec3f> > > noiseVals;
+	bool noiseValsCached;
+	void cacheNoiseVals();
 	
 	float speed;
 	float depthAlphaScl;
 	float depthAlphaExpo;
 	
 	float tileTranslateScale;
+	float cloudHeight;
+	
+	int mcType;
+	
+	bool tiling;
+	
+	vector<ofVec3f> balls;
+	vector<ofVec3f> ballVelocity;
+	vector<float> ballRadius;
+	void addBallToMC(ofVec3f pos, float rad);
+	float mcRadiusScale;
 };
