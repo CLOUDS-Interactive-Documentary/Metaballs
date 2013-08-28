@@ -21,7 +21,7 @@ class CloudsVisualSystemMarchingCubes : public CloudsVisualSystem {
 	//This determines your data path so name it at first!
 	//ie getVisualSystemDataPath() uses this
     string getSystemName(){
-		return "MetaballsSystem";
+		return "Metaballs";
 	}
 
 	//These methods let us add custom GUI parameters and respond to their events
