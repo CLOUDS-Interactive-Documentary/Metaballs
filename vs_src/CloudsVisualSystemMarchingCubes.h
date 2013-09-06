@@ -25,7 +25,7 @@ class CloudsVisualSystemMarchingCubes : public CloudsVisualSystem {
 	}
 
 	//These methods let us add custom GUI parameters and respond to their events
-    void selfSetupGui();
+    void selfSetupGui();	
     void selfGuiEvent(ofxUIEventArgs &e);
     
 	//Use system gui for global or logical settings, for exmpl
