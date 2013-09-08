@@ -539,6 +539,8 @@ void CloudsVisualSystemMarchingCubes::selfDrawBackground(){
 // Right after this selfUpdate() and selfDraw() won't be called any more
 void CloudsVisualSystemMarchingCubes::selfEnd(){
 	
+    noiseVals.clear();
+    
 	simplePointcloud.clear();
 	
 }
