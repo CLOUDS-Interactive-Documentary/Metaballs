@@ -241,9 +241,9 @@ void CloudsVisualSystemMarchingCubes::selfBegin(){
 		ballRadius[i] = ofRandom(10, 30);
 	}
 	
-	updateMeshFauxBalls();
-	
-	updateMesh();
+//	updateMeshFauxBalls();
+//	
+//	updateMesh();
 }
 
 void CloudsVisualSystemMarchingCubes::cacheNoiseVals(){
