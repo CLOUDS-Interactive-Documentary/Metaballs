@@ -525,8 +525,8 @@ void CloudsVisualSystemMarchingCubes::selfDrawBackground(){
 // this is called when your system is no longer drawing.
 // Right after this selfUpdate() and selfDraw() won't be called any more
 void CloudsVisualSystemMarchingCubes::selfEnd(){
-	
 }
+
 // this is called when you should clear all the memory and delet anything you made in setup
 void CloudsVisualSystemMarchingCubes::selfExit(){
 	mc.clear();
