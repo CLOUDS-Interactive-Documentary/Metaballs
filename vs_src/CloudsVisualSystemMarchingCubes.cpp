@@ -20,9 +20,6 @@ void CloudsVisualSystemMarchingCubes::selfSetupGui(){
 	customGui->setName("Custom");
 	customGui->setWidgetFontSize(OFX_UI_FONT_SMALL);
 	
-//	customGui->addSlider("Custom Float 1", 1, 1000, &customFloat1);
-//	customGui->addSlider("Custom Float 2", 1, 1000, &customFloat2);
-//	customGui->addButton("Custom Button", false);
 	customGui->addSlider("scl1", 0, 1, &scl1 );
 	customGui->addSlider("scl2", 0, 1, &scl2 );
 	customGui->addToggle("Wireframe", &wireframe);
@@ -216,7 +213,11 @@ void CloudsVisualSystemMarchingCubes::selfSetup(){
 	noiseValsCached = false;
 	
 	mcRadiusScale = 1.5;
-		
+	
+	
+	//used to speed up noise rendering
+	cacheNoiseVals();
+	
 }
 
 // selfPresetLoaded is called whenever a new preset is triggered
@@ -230,25 +231,18 @@ void CloudsVisualSystemMarchingCubes::selfPresetLoaded(string presetPath){
 // this is a good time to prepare for transitions
 // but try to keep it light weight as to not cause stuttering
 void CloudsVisualSystemMarchingCubes::selfBegin(){
-
-	if(mcType == 0){
-		
-		cacheNoiseVals();
-		
+	
+	balls.resize( 10 );
+	ballRadius.resize(balls.size());
+	ballVelocity.resize(balls.size());
+	
+	for(int i=0; i<balls.size(); i++){
+		balls[i].set( ofRandom(-100, 100), ofRandom(-100, 100), ofRandom(-100, 100));
+		ballRadius[i] = ofRandom(10, 30);
 	}
-//	else if( mcType == 1){
-		balls.resize( 10 );
-		ballRadius.resize(balls.size());
-		ballVelocity.resize(balls.size());
-		
-		for(int i=0; i<balls.size(); i++){
-			balls[i].set( ofRandom(-100, 100), ofRandom(-100, 100), ofRandom(-100, 100));
-			ballRadius[i] = ofRandom(10, 30);
-		}
-		
-		updateMeshFauxBalls();
-//	}
-
+	
+	updateMeshFauxBalls();
+	
 	updateMesh();
 }
 
@@ -449,15 +443,8 @@ void CloudsVisualSystemMarchingCubes::selfUpdate(){
 
 // selfDraw draws in 3D using the default ofEasyCamera
 // you can change the camera by returning getCameraRef()
-void CloudsVisualSystemMarchingCubes::selfDraw(){
-	
-//	ofPushMatrix();
-//	setupRGBDTransforms();
-//	pointcloudShader.begin();
-//	getRGBDVideoPlayer().setupProjectionUniforms(pointcloudShader);
-//	simplePointcloud.drawVertices();
-//	pointcloudShader.end();
-//	ofPopMatrix();
+void CloudsVisualSystemMarchingCubes::selfDraw()
+{
 	
 	if(!depthTest)	glDisable( GL_DEPTH_TEST );
 	else	glEnable( GL_DEPTH_TEST );
@@ -539,12 +526,33 @@ void CloudsVisualSystemMarchingCubes::selfDrawBackground(){
 // Right after this selfUpdate() and selfDraw() won't be called any more
 void CloudsVisualSystemMarchingCubes::selfEnd(){
 	
-	simplePointcloud.clear();
-	
 }
 // this is called when you should clear all the memory and delet anything you made in setup
 void CloudsVisualSystemMarchingCubes::selfExit(){
+	mc.clear();
 	
+	//delete some other mc data
+	mc.gridPointComputed.clear();
+	mc.vertices.clear();
+	mc.normals.clear();
+	mc.boundryBox.clear();
+	mc.vbo.clear();
+	
+	for (int i=0; i<noiseVals.size(); i++) {
+		for (int j=0; j<noiseVals[i].size(); j++) {
+			noiseVals[i][j].clear();
+		}
+		noiseVals[i].clear();
+	}
+	noiseVals.clear();
+	
+	for (int i=0; i<ballVals.size(); i++) {
+		for (int j=0; j<ballVals[i].size(); j++) {
+			ballVals[i][j].clear();
+		}
+		ballVals[i].clear();
+	}
+	ballVals.clear();
 }
 
 //events are called when the system is active
