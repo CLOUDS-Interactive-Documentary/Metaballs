@@ -99,9 +99,9 @@ class CloudsVisualSystemMarchingCubes : public CloudsVisualSystem {
 //	}
 
 	//
-	ofCamera& getCameraRef(){
-		return cloudsCamera;
-	}
+//	ofCamera& getCameraRef(){
+//		return cloudsCamera;
+//	}
 
 protected:
 	
