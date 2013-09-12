@@ -94,14 +94,14 @@ void CloudsVisualSystemMarchingCubes::selfGuiEvent(ofxUIEventArgs &e){
 	}
 	
 	else if(name == "add"){
-		ofxUIToggle *t = e.getToggle();
+		ofxUIToggle *t = (ofxUIToggle*) e.widget;
 		if(t->getValue()){
 			blendMode = OF_BLENDMODE_ADD;
 		}
 	}
 	
 	else if(name == "sub"){
-		ofxUIToggle *t = e.getToggle();
+		ofxUIToggle *t = (ofxUIToggle*) e.widget;
 		if(t->getValue()){
 			blendMode = OF_BLENDMODE_SUBTRACT;
 		}
@@ -110,28 +110,28 @@ void CloudsVisualSystemMarchingCubes::selfGuiEvent(ofxUIEventArgs &e){
 	
 	
 	else if(name == "mult"){
-		ofxUIToggle *t = e.getToggle();
+		ofxUIToggle *t = (ofxUIToggle*) e.widget;
 		if(t->getValue()){
 			blendMode = OF_BLENDMODE_MULTIPLY;
 		}
 	}
 	
 	else if(name == "screen"){
-		ofxUIToggle *t = e.getToggle();
+		ofxUIToggle *t = (ofxUIToggle*) e.widget;
 		if(t->getValue()){
 			blendMode = OF_BLENDMODE_SCREEN;
 		}
 	}
 	
 	else if(name == "disable"){
-		ofxUIToggle *t = e.getToggle();
+		ofxUIToggle *t = (ofxUIToggle*) e.widget;
 		if(t->getValue()){
 			blendMode = OF_BLENDMODE_DISABLED;
 		}
 	}
 	
 	else if(name == "alpha"){
-		ofxUIToggle *t = e.getToggle();
+		ofxUIToggle *t = (ofxUIToggle*) e.widget;
 		if(t->getValue()){
 			blendMode = OF_BLENDMODE_ALPHA;
 		}
@@ -150,14 +150,14 @@ void CloudsVisualSystemMarchingCubes::selfGuiEvent(ofxUIEventArgs &e){
 	}
 	
 	else if(name == "noise"){
-		ofxUIToggle *t = e.getToggle();
+		ofxUIToggle *t = (ofxUIToggle*) e.widget;;
 		if(t->getValue()){
 			mcType = 0;
 		}
 	}
 	
 	else if(name == "metaballs"){
-		ofxUIToggle *t = e.getToggle();
+				ofxUIToggle *t = (ofxUIToggle*) e.widget;
 		if(t->getValue()){
 			mcType = 1;
 		}
