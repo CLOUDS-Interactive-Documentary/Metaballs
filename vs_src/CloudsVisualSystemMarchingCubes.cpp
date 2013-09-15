@@ -13,7 +13,7 @@
 
 //These methods let us add custom GUI parameters and respond to their events
 void CloudsVisualSystemMarchingCubes::selfSetupGui(){
-
+	
 	customGui = new ofxUISuperCanvas("CUSTOM", gui);
 	customGui->copyCanvasStyle(gui);
 	customGui->copyCanvasProperties(gui);
